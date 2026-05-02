@@ -1,0 +1,11 @@
+services:
+  sshitmaids:
+    build: ./src
+    image: sshitmaids:latest
+    container_name: sshitmaids
+    ports:
+      - "${SSHITMAIDS_PORT:-2222}:22"
+    volumes:
+      - ./volumes/ssh/sshitmaids:/root/sshitmaids
+      - ./volumes/ssh/client:/root/ssh-client
+    restart: unless-stopped
