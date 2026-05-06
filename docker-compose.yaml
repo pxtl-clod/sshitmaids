@@ -1,6 +1,6 @@
 services:
   sshitmaids:
-    build: ./src
+    build: ./container
     image: sshitmaids:latest
     container_name: sshitmaids
     ports:
