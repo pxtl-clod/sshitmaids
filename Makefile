@@ -17,7 +17,7 @@ help:
 	@echo "usage: make [target]"
 
 init-sshitmaids:
-	@bash ./src/init-volumes.sh $(SSHITMAIDS_DEST_HOST)
+	@bash ./build/init-volumes.sh $(SSHITMAIDS_DEST_HOST)
 
 build: init-sshitmaids
 	docker compose build

@@ -11,6 +11,10 @@ RUN ssh-keygen -A
 COPY dest-mitm.sh /usr/local/bin/dest-mitm
 RUN chmod +x /usr/local/bin/dest-mitm
 
+# Install reconfigure (idempotent rebuild)
+COPY reconfigure.sh /reconfigure.sh
+RUN chmod +x /reconfigure.sh
+
 # Install entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
