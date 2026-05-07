@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
 DEST_HOST="$1"
 DEST_PORT=${2:-"22"}
 MITM_DIR="/root/sshitmaids"
-CLIENT_DIR="/root/client"
+CLIENT_DIR="/root/ssh-client"
 PASSTHROUGH_USER="git"
 USER_DIR="/home/$PASSTHROUGH_USER"
 
@@ -51,8 +51,8 @@ Host dest
     HostName $DEST_HOST
     Port $DEST_PORT
     User $PASSTHROUGH_USER
-    IdentityFile /$MITM_DIR/.ssh/id_ed25519
-    UserKnownHostsFile /$MITM_DIR/.ssh/known_hosts
+    IdentityFile /$USER_DIR/.ssh/id_ed25519
+    UserKnownHostsFile /$USER_DIR/.ssh/known_hosts
     StrictHostKeyChecking yes
 EOF
 
@@ -86,8 +86,8 @@ if [ ! -d /root/.ssh ]; then
 fi
 
 # Copy MITM keys to root's .ssh (if not already copied)
-if [ -d "$MITM_DIR"/dest ]; then
-    cp -f "$MITM_DIR"/dest/* /root/.ssh/ 2>/dev/null || true
+if [ -d $MITM_DIR ]; then
+    cp -f $MITM_DIR/* /root/.ssh/ 2>/dev/null || true
 fi
 
 echo "6. Ensuring $PASSTHROUGH_USER & ephemeral .ssh dir..."
@@ -158,12 +158,8 @@ fi
 
 # Start SSHD to listen for client connections (re-runnable)
 echo "10. Starting SSHD to listen for client connections..."
-if [ -f /etc/ssh/sshd_config ]; then
-    # sshd will start in background mode, logging to stderr (captured by docker)
-    /usr/sbin/sshd >> /dev/null 2>> /var/log/auth.log &
+# sshd will start in background mode, logging to /var/log/sshd.log
+/usr/sbin/sshd -E /var/log/sshd.log
 echo "   SSHD started (running in background)"
-else
-    echo "   WARN: /etc/ssh/sshd_config not found, skipping SSHD startup"
-fi
 
 echo "11. Done reconfiguring for $DEST_HOST:$DEST_PORT"
