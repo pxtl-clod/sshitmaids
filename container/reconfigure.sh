@@ -151,6 +151,19 @@ EOF
     fi
 else
     echo "   Skipping client config (SSHITMAIDS_GENERATE_CLIENT_CONFIG not 'true')"
+
+    # Create client known_hosts even if config not generated
+    : > "$CLIENT_DIR/known_hosts"
 fi
 
-echo "Done reconfiguring for $DEST_HOST:$DEST_PORT"
+# Start SSHD to listen for client connections (re-runnable)
+echo "10. Starting SSHD to listen for client connections..."
+if [ -f /etc/ssh/sshd_config ]; then
+    # sshd will start in background mode, logging to stderr (captured by docker)
+    /usr/sbin/sshd >> /dev/null 2>> /var/log/auth.log &
+echo "   SSHD started (running in background)"
+else
+    echo "   WARN: /etc/ssh/sshd_config not found, skipping SSHD startup"
+fi
+
+echo "11. Done reconfiguring for $DEST_HOST:$DEST_PORT"
