@@ -135,7 +135,7 @@ if [ "$SSHITMAIDS_GENERATE_CLIENT_CONFIG" = "true" ]; then
     cat > "$CLIENT_DIR/config" <<EOF
 Host $DEST_HOST
     HostName sshitmaids
-    Port $DEST_PORT
+    Port 22
     User root
     IdentityFile ~/.ssh/id_ed25519
 EOF
