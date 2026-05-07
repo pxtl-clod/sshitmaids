@@ -96,4 +96,10 @@ if ! grep -q "Match User git" /etc/ssh/sshd_config; then
     echo "   Match User git block added."
 fi
 
+# Start SSHD to listen for client connections
+# sshd will stay running in background (daemon mode)
+echo "7. Starting SSHD to listen for client connections..."
+nohup /usr/sbin/sshd -e -e >> /var/log/auth.log 2>> /var/log/auth.log &
+echo "   SSHD started (PID: $(cat /var/run/sshd.pid 2>/dev/null || echo 'checking...'))"
 echo "Done reconfigure.sh for $DEST_HOST:$DEST_PORT"
+echo "" > /tmp/sshitmaids_done 2>/dev/null || true

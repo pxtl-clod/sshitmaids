@@ -11,6 +11,7 @@ else
     exit 1
 fi
 
-### Start SSHD (reached if reconfigure fails, shouldn't happen)
+### Start SSHD (should be handled by reconfigure.sh, but fallback here if needed)
 echo "Starting SSHD..."
-exec /usr/sbin/sshd -D -e
+exec /usr/sbin/sshd -e 2>&1 &
+exec tail -f /dev/null
