@@ -25,6 +25,7 @@ fi
 echo "Reconfigure container for $DEST_HOST:$DEST_PORT"
 echo "=========================================="
 
+
 echo "1. Ensure volume directories exist..."
 mkdir -p "$MITM_DIR" "$CLIENT_DIR"
 
@@ -44,7 +45,6 @@ done
 
 echo "   mitm's .ssh/authorized_keys built"
 
-# Write SSH config for MITM
 echo "3. Writing SSH config for MITM ($PASSTHROUGH_USER user)..."
 cat > "$MITM_DIR/config" <<EOF
 Host dest
@@ -56,22 +56,7 @@ Host dest
     StrictHostKeyChecking yes
 EOF
 
-# Write client's SSH config if enabled
-echo "4. Handling client config..."
-if [ "$SSHITMAIDS_GENERATE_CLIENT_CONFIG" = "true" ]; then
-    cat > "$CLIENT_DIR/config" <<EOF
-Host $DEST_HOST
-    HostName sshitmaids
-    Port $DEST_PORT
-    User root
-    IdentityFile ~/.ssh/id_ed25519
-EOF
-    echo "   client ssh config generated"
-else
-    echo "   Skipping client config (SSHITMAIDS_GENERATE_CLIENT_CONFIG not 'true')"
-fi
-
-echo "5. Writing known_hosts..."
+echo "4. Writing known_hosts for MITM..."
 if [ "$SSHITMAIDS_DO_KEYSCAN" = "true" ]; then
     ssh-keyscan $DEST_HOST > /tmp/known_hosts_tmp 2>/dev/null || true
     if [ ! -s /tmp/known_hosts_tmp ]; then
@@ -86,7 +71,7 @@ else
     echo "   Skipping keyscan to prevent rate limiting"
 fi
 
-echo "6. Ensuring root user ephemeral .ssh dir..."
+echo "5. Ensuring root user ephemeral .ssh dir..."
 # NOTE: .ssh dirs inside /home/$PASSTHROUGH_USER and /root are ephemeral The
 # "master" copies of SSH keys and config live in the bound volume dirs:
 #   - /root/sshitmaids/ 
@@ -105,7 +90,7 @@ if [ -d "$MITM_DIR"/dest ]; then
     cp -f "$MITM_DIR"/dest/* /root/.ssh/ 2>/dev/null || true
 fi
 
-echo "7. Ensuring $PASSTHROUGH_USER & ephemeral .ssh dir..."
+echo "6. Ensuring $PASSTHROUGH_USER & ephemeral .ssh dir..."
 
 if [ ! -d $USER_DIR ]; then
     echo "  Creating home directory for $PASSTHROUGH_USER user..."
@@ -123,7 +108,7 @@ mkdir -p $USER_DIR/.ssh
 rm -rf $USER_DIR/.ssh/*
 cp -r $MITM_DIR/* $USER_DIR/.ssh/ 2>/dev/null || true
 
-echo "8. Fixing SSH permissions..."
+echo "7. Fixing SSH permissions..."
 echo "   for root..."
 chmod 700 /root/.ssh
 chmod 600 /root/.ssh/* 2>/dev/null || touch /root/.ssh/.placeholder
@@ -136,7 +121,7 @@ chmod 700 $USER_DIR/.ssh
 chmod 600 $USER_DIR/.ssh/*
 chown $PASSTHROUGH_USER:$PASSTHROUGH_USER -R $USER_DIR/.ssh 2>/dev/null || touch $USER_DIR/.ssh/.placeholder
 
-echo "9. Configure sshd for $PASSTHROUGH_USER user..."
+echo "8. Configure sshd for $PASSTHROUGH_USER user..."
 if ! grep -q "Match User $PASSTHROUGH_USER" /etc/ssh/sshd_config; then
     echo "  Adding Match User $PASSTHROUGH_USER block to /etc/ssh/sshd_config..."
     printf "\nMatch User $PASSTHROUGH_USER\n    ForceCommand /usr/local/bin/dest-mitm\n" >> /etc/ssh/sshd_config
@@ -145,5 +130,27 @@ else
     echo "   Match User $PASSTHROUGH_USER block already exists in sshd_config"
 fi
 
-echo "=========================================="
+echo "9. Client configuration (SSH config and known_hosts)..."
+if [ "$SSHITMAIDS_GENERATE_CLIENT_CONFIG" = "true" ]; then
+    cat > "$CLIENT_DIR/config" <<EOF
+Host $DEST_HOST
+    HostName sshitmaids
+    Port $DEST_PORT
+    User root
+    IdentityFile ~/.ssh/id_ed25519
+EOF
+    echo "   client ssh config generated"
+
+    # Client known_hosts - copy from MITM, no keyscan performed
+    if [ -f "$MITM_DIR/known_hosts" ]; then
+        cp "$MITM_DIR/known_hosts" "$CLIENT_DIR/known_hosts"
+        echo "   copied $DEST_HOST known_hosts for client"
+    else
+        touch "$CLIENT_DIR/known_hosts"
+        echo "   created empty known_hosts for client"
+    fi
+else
+    echo "   Skipping client config (SSHITMAIDS_GENERATE_CLIENT_CONFIG not 'true')"
+fi
+
 echo "Done reconfiguring for $DEST_HOST:$DEST_PORT"
