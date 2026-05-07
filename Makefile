@@ -16,10 +16,7 @@ endif
 help:
 	@echo "usage: make [target]"
 
-init-sshitmaids:
-	@bash ./build/init-volumes.sh $(SSHITMAIDS_DEST_HOST)
-
-build: init-sshitmaids
+build:
 	docker compose build
 
 # Start the full stack (ensures network and builds agent first)
