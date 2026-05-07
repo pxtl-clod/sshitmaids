@@ -6,11 +6,9 @@ services:
     environment:
       - SSHITMAIDS_DEST_HOST=${SSHITMAIDS_DEST_HOST:-"github.com"}
       - SSHITMAIDS_PORT=${SSHITMAIDS_PORT:-2222}
+      - SSHITMAIDS_DEST_PORT=${SSHITMAIDS_DEST_PORT:-22}
     ports:
       - "${SSHITMAIDS_PORT:-2222}:22"
-    environment:
-      - "SSHITMAIDS_DEST_HOST=${SSHITMAIDS_DEST_HOST:-github.com}"
-      - "SSHITMAIDS_DEST_PORT=${SSHITMAIDS_DEST_PORT:-22}"
     volumes:
       - ./volumes/ssh/sshitmaids:/root/sshitmaids
       - ./volumes/ssh/client:/root/ssh-client
