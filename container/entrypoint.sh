@@ -4,8 +4,8 @@ set -e
 ### Call reconfigure (idempotent rebuild)
 # reconfigure.sh is always at /reconfigure.sh (guaranteed by Dockerfile)
 if [ -x /reconfigure.sh ]; then
-    echo "Calling reconfigure.sh..."
-    exec /reconfigure.sh "$@"
+    echo "Calling reconfigure.sh $SSHITMAIDS_DEST_HOST:$SSHITMAIDS_DEST_PORT..."
+    exec /reconfigure.sh "$SSHITMAIDS_DEST_HOST" "$SSHITMAIDS_DEST_PORT"" >\u0026
 else
     echo "ERROR: /reconfigure.sh not found. Image build failed."
     exit 1
