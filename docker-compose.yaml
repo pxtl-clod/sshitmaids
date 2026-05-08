@@ -5,6 +5,7 @@ services:
     container_name: sshitmaids
     environment:
       - SSHITMAIDS_DEST_HOST=${SSHITMAIDS_DEST_HOST:-"github.com"}
+      - SSHITMAIDS_DEST_PORT=${SSHITMAIDS_DEST_PORT:-22}
       - SSHITMAIDS_PORT=${SSHITMAIDS_PORT:-2222}
     ports:
       - "${SSHITMAIDS_PORT:-2222}:22"
